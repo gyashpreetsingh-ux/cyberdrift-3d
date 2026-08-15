@@ -6,6 +6,10 @@
   <title>CyberDrift 3D: Neo Tokyo Overdrive | By Yashpreet Singh</title>
   <meta name="description" content="High-octane 3D Cyberpunk Highway Racing Game built with Three.js. Created by Yashpreet Singh.">
   <meta name="author" content="Yashpreet Singh">
+  <link rel="manifest" href="./assets/manifest-B2NA9y4T.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <meta name="theme-color" content="#00f3ff">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
@@ -20,8 +24,8 @@
       }
     }
   </script>
-  <script type="module" crossorigin src="/assets/index-DQxtRpdO.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-BllxjjeA.css">
+  <script type="module" crossorigin src="./assets/index-DQxtRpdO.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BllxjjeA.css">
 </head>
 <body>
   <!-- 3D Canvas Container -->
@@ -500,6 +504,14 @@
     </div>
   </div>
 
+  <!-- Register Service Worker for PWA / Play Store -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
   <!-- Main JavaScript Application Module -->
 </body>
 </html>
