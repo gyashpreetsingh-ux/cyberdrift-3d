@@ -7,7 +7,7 @@
 [![WebGL](https://img.shields.io/badge/WebGL-3D_Engine-ff0055?style=for-the-badge&logo=webgl&logoColor=white)](https://www.khronos.org/webgl/)
 [![Web Audio API](https://img.shields.io/badge/Web_Audio-Procedural_Synth-ffe600?style=for-the-badge&logo=soundcharts&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
 [![Vite](https://img.shields.io/badge/Vite-5.0+-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Author](https://img.shields.io/badge/Architect-Yashpreet_Singh-00ff66?style=for-the-badge&logo=github&logoColor=black)](https://github.com)
+[![Author](https://img.shields.io/badge/Architect-Yashpreet_Singh-00ff66?style=for-the-badge&logo=github&logoColor=black)](https://github.com/gyashpreetsingh-ux)
 [![License](https://img.shields.io/badge/License-MIT-a800ff?style=for-the-badge)](LICENSE)
 
 <br/>
@@ -118,7 +118,7 @@ cyberdrift-3d/
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/yashpreet/cyberdrift-3d.git
+git clone https://github.com/gyashpreetsingh-ux/cyberdrift-3d.git
 cd cyberdrift-3d
 ```
 
@@ -158,7 +158,7 @@ npm run build
 ### **Yashpreet Singh**
 *Lead Architect & Creative Developer*
 
-[![GitHub](https://img.shields.io/badge/GitHub-Profile-181717?style=flat-square&logo=github)](https://github.com)
+[![GitHub](https://img.shields.io/badge/GitHub-gyashpreetsingh--ux-181717?style=flat-square&logo=github)](https://github.com/gyashpreetsingh-ux)
 [![Email](https://img.shields.io/badge/Email-gyashpreetsingh%40gmail.com-D14836?style=flat-square&logo=gmail&logoColor=white)](mailto:gyashpreetsingh@gmail.com)
 
 </div>
