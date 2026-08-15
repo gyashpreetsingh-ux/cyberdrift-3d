@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CyberDrift 3D: Neo Tokyo Overdrive | By Yashpreet Singh</title>
+  <meta name="description" content="High-octane 3D Cyberpunk Highway Racing Game built with Three.js. Created by Yashpreet Singh.">
+  <meta name="author" content="Yashpreet Singh">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- Fallback Importmap for Three.js -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- 3D Canvas Container -->
+  <div id="canvas-container"></div>
+
+  <!-- Screen Flash & Weather VFX Overlays -->
+  <div id="lightning-flash" class="vfx-overlay"></div>
+  <div id="speed-lines" class="vfx-overlay"></div>
+  <div id="rain-droplets" class="vfx-overlay"></div>
+  <div id="damage-vignette" class="vfx-overlay"></div>
+  <div id="shield-active-overlay" class="vfx-overlay"></div>
+
+  <!-- In-Game HUD -->
+  <div id="hud" class="hud-container hidden">
+    <!-- Top Bar: Scores, Multiplier, Distance & Weather -->
+    <div class="hud-top">
+      <div class="hud-card score-card">
+        <span class="hud-label">SCORE</span>
+        <span id="hud-score" class="hud-value glowing-cyan">000000</span>
+      </div>
+
+      <div class="hud-card combo-card">
+        <span class="hud-label">MULTIPLIER</span>
+        <div class="combo-row">
+          <span id="hud-multiplier" class="hud-value glowing-gold">x1.0</span>
+          <div id="combo-bar-track">
+            <div id="combo-bar-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-card distance-card">
+        <span class="hud-label">DISTANCE</span>
+        <span id="hud-distance" class="hud-value">0.0 KM</span>
+      </div>
+
+      <div class="hud-card weather-card">
+        <span class="hud-label">ATMOSPHERE</span>
+        <span id="hud-weather-name" class="hud-value-sub">NEON NIGHT</span>
+      </div>
+
+      <div class="hud-card author-tag-hud" id="hud-author-btn" title="View Creator Profile">
+        <span class="creator-badge">CREATOR</span>
+        <span class="author-name">Yashpreet Singh</span>
+      </div>
+    </div>
+
+    <!-- Center Floating Alerts (Near-miss, High Speed, Level Up) -->
+    <div id="hud-announcer" class="announcer-container">
+      <div id="announcer-text" class="announcer-text"></div>
+      <div id="announcer-sub" class="announcer-sub"></div>
+    </div>
+
+    <!-- Bottom Dashboard: Speedometer, Gear, Tachometer, Nitro & Shield -->
+    <div class="hud-bottom">
+      <!-- Mini Radar / Traffic Scanner -->
+      <div class="radar-box">
+        <span class="radar-label">SCANNER</span>
+        <canvas id="radar-canvas" width="90" height="90"></canvas>
+      </div>
+
+      <!-- Center Digital Speed Cluster -->
+      <div class="speed-cluster">
+        <div class="speed-row">
+          <span id="hud-speed" class="speed-number">0</span>
+          <span class="speed-unit">KM/H</span>
+        </div>
+        <div class="gear-row">
+          <span class="gear-label">GEAR</span>
+          <span id="hud-gear" class="gear-val">1</span>
+        </div>
+        <!-- Tachometer Bar -->
+        <div class="tacho-track">
+          <div id="tacho-fill" class="tacho-fill"></div>
+        </div>
+      </div>
+
+      <!-- Right Gauges: Nitro & Shield / Health -->
+      <div class="gauges-box">
+        <!-- Nitro Gauge -->
+        <div class="gauge-row">
+          <div class="gauge-info">
+            <span class="gauge-label">NITRO BOOST</span>
+            <span id="hud-nitro-val" class="gauge-pct">100%</span>
+          </div>
+          <div class="gauge-bar-track nitro-track">
+            <div id="nitro-bar-fill" class="gauge-bar-fill nitro-fill"></div>
+          </div>
+          <span class="gauge-hint">PRESS [SHIFT] / [W]</span>
+        </div>
+
+        <!-- Vehicle Shield / Integrity -->
+        <div class="gauge-row">
+          <div class="gauge-info">
+            <span class="gauge-label">HULL INTEGRITY</span>
+            <span id="hud-health-val" class="gauge-pct">100%</span>
+          </div>
+          <div class="gauge-bar-track health-track">
+            <div id="health-bar-fill" class="gauge-bar-fill health-fill"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Control Buttons for Camera & Sound -->
+    <div class="hud-quick-actions">
+      <button id="btn-camera-toggle" class="btn-icon" title="Change Camera View [C]">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M4 4h3l2-2h6l2 2h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm8 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/></svg>
+        <span id="hud-camera-name">CHASE</span>
+      </button>
+      <button id="btn-pause-toggle" class="btn-icon" title="Pause Game [ESC / P]">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>
+      </button>
+    </div>
+
+    <!-- Touch Controls for Mobile / Tablets -->
+    <div id="touch-controls" class="touch-controls-container">
+      <div class="touch-dpad">
+        <button id="btn-touch-left" class="touch-btn touch-btn-nav">◀</button>
+        <button id="btn-touch-right" class="touch-btn touch-btn-nav">▶</button>
+      </div>
+      <div class="touch-actions">
+        <button id="btn-touch-brake" class="touch-btn touch-btn-brake">BRAKE</button>
+        <button id="btn-touch-nitro" class="touch-btn touch-btn-nitro">NITRO</button>
+        <button id="btn-touch-gas" class="touch-btn touch-btn-gas">GAS</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- UI Screen: Main Menu -->
+  <div id="screen-main-menu" class="screen-overlay active">
+    <div class="cyber-scanlines"></div>
+    <div class="menu-content-card">
+      <!-- Title & Branding -->
+      <div class="game-branding">
+        <div class="sub-title-glitch">SYNTHWAVE 3D EXPERIENCE</div>
+        <h1 class="main-title">CYBER<span>DRIFT</span></h1>
+        <div class="tagline">NEO TOKYO OVERDRIVE</div>
+      </div>
+
+      <!-- Author Credits Hero Section -->
+      <div class="author-hero-card" id="author-banner-btn">
+        <div class="author-avatar-pulse">
+          <span class="avatar-letter">Y</span>
+        </div>
+        <div class="author-info">
+          <span class="author-role-tag">CREATOR & LEAD DEVELOPER</span>
+          <span class="author-full-name">Yashpreet Singh</span>
+          <span class="author-subtext">Click to view Creator Profile & Unlocks</span>
+        </div>
+        <div class="author-chip">VERIFIED</div>
+      </div>
+
+      <!-- Mode Selector -->
+      <div class="mode-selector">
+        <div class="mode-card active" data-mode="endless">
+          <div class="mode-icon">⚡</div>
+          <div class="mode-details">
+            <div class="mode-title">ENDLESS OVERDRIVE</div>
+            <div class="mode-desc">Dodge dense cyber traffic, score near misses & reach maximum multiplier.</div>
+          </div>
+        </div>
+        <div class="mode-card" data-mode="timeattack">
+          <div class="mode-icon">⏱️</div>
+          <div class="mode-details">
+            <div class="mode-title">CYBER BLITZ</div>
+            <div class="mode-desc">Race against sector checkpoint timers using turbo speed pads.</div>
+          </div>
+        </div>
+        <div class="mode-card" data-mode="pursuit">
+          <div class="mode-icon">🚨</div>
+          <div class="mode-details">
+            <div class="mode-title">PURSUIT EVASION</div>
+            <div class="mode-desc">Evade drone interceptors and electronic highway roadblocks.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Primary Action Buttons -->
+      <div class="menu-action-row">
+        <button id="btn-start-game" class="btn-cyber btn-primary">
+          <span class="btn-glitch-text">START ENGINE</span>
+          <span class="btn-arrow">▶</span>
+        </button>
+        <button id="btn-open-garage" class="btn-cyber btn-secondary">
+          <span>GARAGE & TUNING</span>
+        </button>
+        <button id="btn-open-settings" class="btn-cyber btn-secondary">
+          <span>SETTINGS</span>
+        </button>
+      </div>
+
+      <!-- Controls Quick Guide -->
+      <div class="controls-hint-bar">
+        <span>🎮 <b>STEER:</b> [A/D] or [←/→]</span>
+        <span>🚀 <b>NITRO:</b> [W] or [SHIFT]</span>
+        <span>🛑 <b>BRAKE/DRIFT:</b> [S] or [SPACE]</span>
+        <span>🎥 <b>CAM:</b> [C]</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- UI Screen: Garage & Vehicle Tuning -->
+  <div id="screen-garage" class="screen-overlay hidden">
+    <div class="garage-panel">
+      <div class="modal-header">
+        <h2>CYBER GARAGE // TUNING BAY</h2>
+        <button class="btn-close-modal" id="btn-close-garage">✕</button>
+      </div>
+
+      <div class="garage-content">
+        <!-- Vehicle Select Tabs -->
+        <div class="garage-section">
+          <h3>SELECT VEHICLE</h3>
+          <div class="car-selection-grid">
+            <div class="car-card active" data-car="specter">
+              <div class="car-card-name">SPECTER GT-X</div>
+              <div class="car-card-tier">TIER 1 • STREET DRIFTER</div>
+            </div>
+            <div class="car-card" data-car="apex">
+              <div class="car-card-name">APEX CYBER-9</div>
+              <div class="car-card-tier">TIER 2 • HYPER SPEED</div>
+            </div>
+            <div class="car-card creator-special-car" data-car="yashpreet_edition">
+              <div class="car-card-name">YASHPREET EDITION 🌟</div>
+              <div class="car-card-tier">SPECIAL • CREATOR HYPERCAR</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paint Color Palette -->
+        <div class="garage-section">
+          <h3>BODY PAINT FINISH</h3>
+          <div class="color-palette" id="paint-palette">
+            <button class="color-swatch active" data-color="#00f3ff" style="--c: #00f3ff;" title="Neon Cyan"></button>
+            <button class="color-swatch" data-color="#ff0055" style="--c: #ff0055;" title="Crimson Fury"></button>
+            <button class="color-swatch" data-color="#ffe600" style="--c: #ffe600;" title="Tokyo Gold"></button>
+            <button class="color-swatch" data-color="#00ff66" style="--c: #00ff66;" title="Acid Lime"></button>
+            <button class="color-swatch" data-color="#b000ff" style="--c: #b000ff;" title="Hyper Violet"></button>
+            <button class="color-swatch" data-color="#ffffff" style="--c: #ffffff;" title="Chrome Platinum"></button>
+            <button class="color-swatch" data-color="#111115" style="--c: #22222a;" title="Stealth Obsidian"></button>
+          </div>
+        </div>
+
+        <!-- Underglow Neon Selector -->
+        <div class="garage-section">
+          <h3>NEON UNDERGLOW</h3>
+          <div class="color-palette" id="underglow-palette">
+            <button class="color-swatch active" data-glow="#00f3ff" style="--c: #00f3ff;" title="Cyan Glow"></button>
+            <button class="color-swatch" data-glow="#ff0055" style="--c: #ff0055;" title="Magenta Glow"></button>
+            <button class="color-swatch" data-glow="#ffe600" style="--c: #ffe600;" title="Gold Glow"></button>
+            <button class="color-swatch" data-glow="#00ff66" style="--c: #00ff66;" title="Lime Glow"></button>
+            <button class="color-swatch" data-glow="#9d00ff" style="--c: #9d00ff;" title="Violet Glow"></button>
+            <button class="color-swatch" data-glow="#ff5500" style="--c: #ff5500;" title="Plasma Orange"></button>
+          </div>
+        </div>
+
+        <!-- Performance Upgrades -->
+        <div class="garage-section">
+          <h3>PERFORMANCE UPGRADES</h3>
+          <div class="upgrades-list">
+            <div class="upgrade-item">
+              <div class="upgrade-header">
+                <span>WARP ENGINE (TOP SPEED)</span>
+                <span id="upgrade-engine-lvl">LVL 2/5</span>
+              </div>
+              <div class="upgrade-bar"><div class="upgrade-fill" style="width: 40%"></div></div>
+              <button class="btn-upgrade" id="btn-upgrade-engine">UPGRADE (+20 KM/H)</button>
+            </div>
+            <div class="upgrade-item">
+              <div class="upgrade-header">
+                <span>NITRO OVERCHARGE (CAPACITY)</span>
+                <span id="upgrade-nitro-lvl">LVL 3/5</span>
+              </div>
+              <div class="upgrade-bar"><div class="upgrade-fill" style="width: 60%"></div></div>
+              <button class="btn-upgrade" id="btn-upgrade-nitro">UPGRADE (+15% DURATION)</button>
+            </div>
+            <div class="upgrade-item">
+              <div class="upgrade-header">
+                <span>MAGNETIC SHIELD (ARMOR)</span>
+                <span id="upgrade-armor-lvl">LVL 1/5</span>
+              </div>
+              <div class="upgrade-bar"><div class="upgrade-fill" style="width: 20%"></div></div>
+              <button class="btn-upgrade" id="btn-upgrade-armor">UPGRADE (+1 HIT SHIELD)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cyber btn-primary" id="btn-garage-done">APPLY & RETURN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- UI Screen: Settings -->
+  <div id="screen-settings" class="screen-overlay hidden">
+    <div class="settings-panel">
+      <div class="modal-header">
+        <h2>SYSTEM CONFIGURATION</h2>
+        <button class="btn-close-modal" id="btn-close-settings">✕</button>
+      </div>
+
+      <div class="settings-body">
+        <div class="setting-group">
+          <label>SYNTHWAVE MUSIC VOLUME</label>
+          <input type="range" id="vol-music" min="0" max="100" value="70">
+        </div>
+        <div class="setting-group">
+          <label>SOUND FX & ENGINE VOLUME</label>
+          <input type="range" id="vol-sfx" min="0" max="100" value="80">
+        </div>
+        <div class="setting-group">
+          <label>ATMOSPHERIC WEATHER</label>
+          <select id="select-weather" class="cyber-select">
+            <option value="rain">Cyber Rain & Wet Asphalt</option>
+            <option value="night">Midnight Neon City</option>
+            <option value="sunset">Sunset Gold & Purple Horizon</option>
+            <option value="storm">Thunderstorm & Lightning</option>
+            <option value="dynamic" selected>Dynamic Auto-Cycle</option>
+          </select>
+        </div>
+        <div class="setting-group">
+          <label>CAMERA DEFAULT VIEW</label>
+          <select id="select-camera" class="cyber-select">
+            <option value="chase" selected>Third-Person Chase Cam</option>
+            <option value="cockpit">First-Person Cockpit View</option>
+            <option value="cinematic">Cinematic Drone Cam</option>
+          </select>
+        </div>
+        <div class="setting-group">
+          <label>GRAPHICS POST-PROCESSING</label>
+          <div class="checkbox-row">
+            <input type="checkbox" id="check-bloom" checked>
+            <label for="check-bloom">Screen Shake & Speed Warp Effects</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cyber btn-primary" id="btn-settings-save">SAVE & CLOSE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- UI Screen: Author Profile Modal (Yashpreet Singh) -->
+  <div id="screen-author-modal" class="screen-overlay hidden">
+    <div class="author-modal-panel">
+      <div class="modal-header">
+        <h2>DEVELOPER PROFILE</h2>
+        <button class="btn-close-modal" id="btn-close-author">✕</button>
+      </div>
+
+      <div class="author-card-content">
+        <div class="author-header-flex">
+          <div class="author-avatar-big">
+            <span>YS</span>
+          </div>
+          <div class="author-titles">
+            <div class="creator-badge-gold">LEAD ARCHITECT & DEVELOPER</div>
+            <h1 class="author-hero-name">Yashpreet Singh</h1>
+            <p class="author-quote">"Crafting immersive, high-velocity 3D interactive experiences for the modern web."</p>
+          </div>
+        </div>
+
+        <div class="author-highlights-grid">
+          <div class="highlight-box">
+            <span class="hl-label">GAME ENGINE</span>
+            <span class="hl-val">Three.js + WebGL 3D</span>
+          </div>
+          <div class="highlight-box">
+            <span class="hl-label">AUDIO SYNTHESIS</span>
+            <span class="hl-val">Procedural Web Audio API</span>
+          </div>
+          <div class="highlight-box">
+            <span class="hl-label">CREATOR UNLOCK</span>
+            <span class="hl-val glowing-gold">Golden Yashpreet Hypercar Active!</span>
+          </div>
+          <div class="highlight-box">
+            <span class="hl-label">RELEASE BUILD</span>
+            <span class="hl-val">v1.0.0 Production Ready</span>
+          </div>
+        </div>
+
+        <div class="author-bio">
+          <h3>ABOUT THE PROJECT</h3>
+          <p>
+            <b>CyberDrift: Neo Tokyo Overdrive</b> was engineered by <b>Yashpreet Singh</b> to deliver a 60fps real-time 3D racing simulator directly in the browser with zero external heavy assets. Features custom procedural city generation, dynamic wet road reflections, multi-lane traffic AI, full Web Audio engine synthesis, and responsive vehicle suspension physics.
+          </p>
+        </div>
+
+        <div class="author-links-row">
+          <a href="https://github.com" target="_blank" rel="noopener" class="author-link-btn">
+            <span>🌐 GitHub Portfolio</span>
+          </a>
+          <a href="https://linkedin.com" target="_blank" rel="noopener" class="author-link-btn">
+            <span>💼 LinkedIn Profile</span>
+          </a>
+          <button class="author-link-btn gold-btn" id="btn-claim-creator-car">
+            <span>⚡ Equip Creator Edition Car</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UI Screen: Pause Menu -->
+  <div id="screen-pause" class="screen-overlay hidden">
+    <div class="pause-panel">
+      <h2>// SYSTEM PAUSED //</h2>
+      <div class="pause-stats">
+        <p>Current Score: <span id="pause-score">0</span></p>
+        <p>Distance Traveled: <span id="pause-distance">0.0 KM</span></p>
+      </div>
+      <div class="pause-buttons">
+        <button class="btn-cyber btn-primary" id="btn-resume-game">RESUME DRIVE</button>
+        <button class="btn-cyber btn-secondary" id="btn-restart-game">RESTART RUN</button>
+        <button class="btn-cyber btn-secondary" id="btn-pause-settings">SETTINGS</button>
+        <button class="btn-cyber btn-secondary" id="btn-quit-to-menu">MAIN MENU</button>
+      </div>
+      <div class="pause-footer">
+        <span>CyberDrift 3D • Created by Yashpreet Singh</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- UI Screen: Game Over Screen -->
+  <div id="screen-game-over" class="screen-overlay hidden">
+    <div class="gameover-panel">
+      <div class="gameover-title">CRITICAL INTEGRITY FAILURE</div>
+      <div class="gameover-subtitle">RUN TERMINATED</div>
+
+      <div class="gameover-stats-grid">
+        <div class="go-stat-card">
+          <span class="go-stat-label">FINAL SCORE</span>
+          <span id="go-score" class="go-stat-val glowing-cyan">0</span>
+        </div>
+        <div class="go-stat-card">
+          <span class="go-stat-label">HIGH SCORE</span>
+          <span id="go-highscore" class="go-stat-val glowing-gold">0</span>
+        </div>
+        <div class="go-stat-card">
+          <span class="go-stat-label">DISTANCE</span>
+          <span id="go-distance" class="go-stat-val">0.0 KM</span>
+        </div>
+        <div class="go-stat-card">
+          <span class="go-stat-label">NEAR MISSES</span>
+          <span id="go-nearmiss" class="go-stat-val">0</span>
+        </div>
+        <div class="go-stat-card">
+          <span class="go-stat-label">MAX SPEED</span>
+          <span id="go-maxspeed" class="go-stat-val">0 KM/H</span>
+        </div>
+        <div class="go-stat-card">
+          <span class="go-stat-label">CREDITS EARNED</span>
+          <span id="go-credits" class="go-stat-val glowing-green">+0 CYBER-CR</span>
+        </div>
+      </div>
+
+      <div class="gameover-actions">
+        <button class="btn-cyber btn-primary" id="btn-go-retry">
+          <span>RETRY RUN</span>
+          <span>↺</span>
+        </button>
+        <button class="btn-cyber btn-secondary" id="btn-go-garage">
+          <span>GO TO GARAGE</span>
+        </button>
+        <button class="btn-cyber btn-secondary" id="btn-go-menu">
+          <span>MAIN MENU</span>
+        </button>
+      </div>
+
+      <div class="gameover-author-credit">
+        <span>CyberDrift 3D — Developed by <b>Yashpreet Singh</b></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main JavaScript Application Module -->
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "cyberdrift-3d",
+  "version": "1.0.0",
+  "description": "CyberDrift: Neo Tokyo Overdrive - 3D Cyberpunk Highway Web Game created by Yashpreet Singh",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite --port 3000 --open",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "author": "Yashpreet Singh",
+  "license": "MIT",
+  "dependencies": {
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.12"
+  }
+}
